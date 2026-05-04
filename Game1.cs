@@ -43,6 +43,7 @@ public class Game1 : Game
     private SelectionManager _selectManager;
     private KeyboardState _previousKState;
     private MouseState _previousMouseState;
+    private Viewport _croppedViewport;
 
     // --- protein models ---
     public static int CurrentProtein = 0;
@@ -100,10 +101,7 @@ public class Game1 : Game
         //GumUI.Initialize(this);
         _savePrevFilePath = new Dictionary<int, string>();
         //GumService.Default.Initialize(GraphicsDevice); 
-
         
-        Window.ClientSizeChanged += OnResize; //Change window resizing behavior
-
         // Create Models list, starting with 4 examples already loaded
         Models = new List<Model>();
         exampleModels = ["2wj7.cif", "1AL1.cif", "1GFL.cif", "9mar.cif"];
@@ -191,9 +189,6 @@ public class Game1 : Game
         CreateWelcomeWindow(); // move it here, last thing
 
         
-        // info button
-        //_infoButton = new InfoButton(CreateWelcomeWindow);
-        //_infoButton.Build(Window.ClientBounds.Width);
     }
 
     protected override void Update(GameTime gameTime)
@@ -209,7 +204,7 @@ public class Game1 : Game
             Console.WriteLine(_selectManager.SelectedAtom.Residue.AAType);
         }
         
-        _selectManager.Update(mState, _previousMouseState, _clicker.GetRay(GraphicsDevice.Viewport), Models[CurrentProtein], _clicker);
+        _selectManager.Update(mState, _previousMouseState, _clicker.GetRay(_croppedViewport), Models[CurrentProtein], _clicker);
         _camera.UpdateCamera(gameTime, kState, mState);
         Models[CurrentProtein].UpdateAtomData(gameTime);
         HandleModelInput(kState);
@@ -290,12 +285,13 @@ public class Game1 : Game
 
         // Restrict the 3D render area to below the menu bar
         var fullViewport = GraphicsDevice.Viewport;
-        GraphicsDevice.Viewport = new Viewport(
+        _croppedViewport = new Viewport(
             fullViewport.X,
             fullViewport.Y + MenuBarHeight,
             fullViewport.Width,
             Math.Max(1, fullViewport.Height - MenuBarHeight)
         );
+        GraphicsDevice.Viewport = _croppedViewport;
 
         foreach (Model model in Models)
         {
@@ -371,20 +367,6 @@ public class Game1 : Game
 
         
         
-        // else if (System.OperatingSystem.IsMacOS())
-        // {
-        // var dialog = new OpenFileDialog();
-        // dialog.Title = "Open CIF File";
-        // dialog.MultiSelect = false;
-        // dialog.CheckFileExists = true;
-        // if (dialog.ShowDialog(null) == Eto.Forms.DialogResult.Ok)
-        // {
-        //     string filePath = dialog.FileName;
-        //     return filePath;
-        // }
-        // }
-        
-        return "";
     }
 
     public void ExportFile(Model model, string filePath)
@@ -482,12 +464,18 @@ public class Game1 : Game
 
     private void HandleClientSizeChanged(object sender, EventArgs e)
     {
-        //var GumUI = GumService.Default;
-        GumUI.CanvasWidth = _graphics.GraphicsDevice.Viewport.Width;
-        GumUI.CanvasHeight = _graphics.GraphicsDevice.Viewport.Height;
-
-        // Update layout starting at the Root object. All contained objects
-        // will update their layouts recursively:
+        _graphics.PreferredBackBufferWidth = Window.ClientBounds.Width;
+        _graphics.PreferredBackBufferHeight = Window.ClientBounds.Height;
+        _graphics.ApplyChanges(); 
+        
+        GumUI.CanvasWidth = GraphicsDevice.Viewport.Width;
+        GumUI.CanvasHeight = GraphicsDevice.Viewport.Height;
+        
+        _camera.Resize(_graphics, Window);
+        _controlPanel.OnWindowResize(Window.ClientBounds.Width, Window.ClientBounds.Height);
+        _sideMenu.OnWindowResize(Window.ClientBounds.Width, Window.ClientBounds.Height);
+        _ramaPlot.OnWindowResize(Window.ClientBounds.Width, Window.ClientBounds.Height);
+        
         GumUI.Root.UpdateLayout();
     }
 
@@ -537,7 +525,7 @@ public class Game1 : Game
         welcomeWindow.Width = 410;
         welcomeWindow.Height = 300;
         welcomeWindow.AddToRoot();
-
+        
         var welcomeTitle = new Label();
         welcomeTitle.Text = "Welcome to Our Protein Visualizer!";
         welcomeTitle.Dock(Gum.Wireframe.Dock.Top);

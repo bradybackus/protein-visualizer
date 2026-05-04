@@ -12,6 +12,14 @@ public class ControlPanel
 {
     private Panel _controlPanel;
     
+    // Class-level fields so we can update their positions instead of rebuilding
+    private ColoredRectangleRuntime _buttonPanel;
+    private Button _menuButton;
+    private Button _ramaButton;
+    private Button _backboneButton;
+    private Button _infoButton;
+    private Button _resetButton;
+    
     // callbacks to Game1
     private Action _onToggleBackbone;
     private Action _onResetModel;
@@ -22,7 +30,6 @@ public class ControlPanel
     private Action _onShowInfo;
     private Action<int> _onSwitchProtein;
     private FilterHelper _filterHelper;
-
 
     private float _buttonSize = 40f;
     private float _buttonPading = 10f;
@@ -71,7 +78,6 @@ public class ControlPanel
         filterBox.SelectionChanged += (_, _) =>
         {
             _onFilterChanged?.Invoke(filterBox.SelectedObject?.ToString() ?? "No Filter");
-            //_filterHelper.ResetFilter();
             _onResetModel.Invoke();
             String selection = filterBox.SelectedObject.ToString();
             _filterHelper.ApplyFilter(selection);
@@ -80,146 +86,101 @@ public class ControlPanel
         _controlPanel.AddChild(filterBox);
 
         // background behind buttons 
-        var buttonPanel = new ColoredRectangleRuntime();
-        buttonPanel.Width = _buttonSize + _buttonPading * 2;
-        buttonPanel.Height = screenHeight; 
-        buttonPanel.X = screenWidth - buttonPanel.Width;
-        buttonPanel.Y = 0;
-        buttonPanel.Color = new Color(43, 27, 29);
-        _controlPanel.AddChild(buttonPanel);
+        _buttonPanel = new ColoredRectangleRuntime();
+        _buttonPanel.Width = _buttonSize + _buttonPading * 2;
+        _buttonPanel.Height = screenHeight; 
+        _buttonPanel.X = screenWidth - _buttonPanel.Width;
+        _buttonPanel.Y = 0;
+        _buttonPanel.Color = new Color(43, 27, 29);
+        _controlPanel.AddChild(_buttonPanel);
         
         // side menu button
-        var menuButton = new Button();
-        menuButton.X = screenWidth - _buttonSize - _buttonPading;;
-        menuButton.Y = _buttonPading;
-        menuButton.Width = _buttonSize;
-        menuButton.Height = _buttonSize;
-        UIHelper.SetButtonTexture(menuButton, Game1.menuButtonTexture, _buttonSize, _buttonSize);
-        menuButton.Click += (_, _) =>
+        _menuButton = new Button();
+        _menuButton.X = screenWidth - _buttonSize - _buttonPading;
+        _menuButton.Y = _buttonPading;
+        _menuButton.Width = _buttonSize;
+        _menuButton.Height = _buttonSize;
+        UIHelper.SetButtonTexture(_menuButton, Game1.menuButtonTexture, _buttonSize, _buttonSize);
+        _menuButton.Click += (_, _) =>
         {
             _onToggleMenu?.Invoke();
             PlayClickSound();
         }; 
-        _controlPanel.AddChild(menuButton);
+        _controlPanel.AddChild(_menuButton);
         
         // plot button
-        var ramaButton = new Button();
-        ramaButton.X = screenWidth - _buttonSize - _buttonPading;
-        ramaButton.Y = menuButton.Y + _buttonSize + _buttonPading; 
-        ramaButton.Width = _buttonSize;
-        ramaButton.Height = _buttonSize;
-        UIHelper.SetButtonTexture(ramaButton, Game1.plotButtonTexture, _buttonSize, _buttonSize);
-        ramaButton.Click += (_, _) =>
+        _ramaButton = new Button();
+        _ramaButton.X = screenWidth - _buttonSize - _buttonPading;
+        _ramaButton.Y = _menuButton.Y + _buttonSize + _buttonPading; 
+        _ramaButton.Width = _buttonSize;
+        _ramaButton.Height = _buttonSize;
+        UIHelper.SetButtonTexture(_ramaButton, Game1.plotButtonTexture, _buttonSize, _buttonSize);
+        _ramaButton.Click += (_, _) =>
         {
             _onToggleRamaPlot?.Invoke();
             PlayClickSound();
         }; 
-        _controlPanel.AddChild(ramaButton);
+        _controlPanel.AddChild(_ramaButton);
         
         // backbone button
-        var backboneButton = new Button();
-        backboneButton.X = screenWidth - _buttonSize - _buttonPading;
-        backboneButton.Y = ramaButton.Y + _buttonSize + _buttonPading;
-        backboneButton.Width = _buttonSize;
-        backboneButton.Height = _buttonSize;
-        UIHelper.SetButtonTexture(backboneButton, Game1.backboneButtonTexture, _buttonSize, _buttonSize);
-        backboneButton.Click += (_, _) =>
+        _backboneButton = new Button();
+        _backboneButton.X = screenWidth - _buttonSize - _buttonPading;
+        _backboneButton.Y = _ramaButton.Y + _buttonSize + _buttonPading;
+        _backboneButton.Width = _buttonSize;
+        _backboneButton.Height = _buttonSize;
+        UIHelper.SetButtonTexture(_backboneButton, Game1.backboneButtonTexture, _buttonSize, _buttonSize);
+        _backboneButton.Click += (_, _) =>
         {
             _onToggleBackbone?.Invoke();
             PlayClickSound();
         };
-        _controlPanel.AddChild(backboneButton);
+        _controlPanel.AddChild(_backboneButton);
         
         // info button
-        var infoButton = new Button();
-        infoButton.X = screenWidth - _buttonSize - _buttonPading;  
-        infoButton.Y = backboneButton.Y + _buttonSize + _buttonPading;
-        infoButton.Width = _buttonSize;   
-        infoButton.Height = _buttonSize;
-        infoButton.Click += (s, e) =>
+        _infoButton = new Button();
+        _infoButton.X = screenWidth - _buttonSize - _buttonPading;  
+        _infoButton.Y = _backboneButton.Y + _buttonSize + _buttonPading;
+        _infoButton.Width = _buttonSize;   
+        _infoButton.Height = _buttonSize;
+        _infoButton.Click += (s, e) =>
         {
             _onShowInfo?.Invoke();
             PlayClickSound();
         }; 
-        UIHelper.SetButtonTexture(infoButton, Game1.infoButtonTexture, _buttonSize, _buttonSize);
-        _controlPanel.AddChild(infoButton);  
+        UIHelper.SetButtonTexture(_infoButton, Game1.infoButtonTexture, _buttonSize, _buttonSize);
+        _controlPanel.AddChild(_infoButton);  
 
         // reset button
-        var resetButton = new Button();
-        resetButton.X = screenWidth - _buttonSize - _buttonPading;
-        resetButton.Y = screenHeight - _buttonSize - _buttonPading;
-        resetButton.Width = _buttonSize;
-        resetButton.Height = _buttonSize;
-        UIHelper.SetButtonTexture(resetButton, Game1.resetButtonTexture, _buttonSize, _buttonSize);
-        resetButton.Click += (_, _) =>
+        _resetButton = new Button();
+        _resetButton.X = screenWidth - _buttonSize - _buttonPading;
+        _resetButton.Y = screenHeight - _buttonSize - _buttonPading;
+        _resetButton.Width = _buttonSize;
+        _resetButton.Height = _buttonSize;
+        UIHelper.SetButtonTexture(_resetButton, Game1.resetButtonTexture, _buttonSize, _buttonSize);
+        _resetButton.Click += (_, _) =>
         {
             _onResetModel?.Invoke();
             PlayClickSound();
         }; 
-        _controlPanel.AddChild(resetButton);
-        
-        // radio buttons
-    //     var stackPanel = new StackPanel();
-    //     stackPanel.X = _buttonPading;
-    //     stackPanel.Y = screenHeight - 40;
-    //     var stackPanelVisual = stackPanel.Visual;
-    //     stackPanelVisual.ChildrenLayout = Gum.Managers.ChildrenLayout.LeftToRightStack;
-    //     _controlPanel.AddChild(stackPanel);
-    //
-    //     var proteinOneButton = new RadioButton();
-    //     proteinOneButton.Text = "alphaB";
-    //     proteinOneButton.Checked += (_, _) => 
-    //     {
-    //         Game1.CurrentProtein = 0;
-    //         foreach (var m in Game1.SharedModels) m.Shown = false;
-    //         Game1.SharedModels[0].Shown = true;
-    //         _onResetCamera?.Invoke(); 
-    //         PlayClickSound(); 
-    //     };
-    //     stackPanel.AddChild(proteinOneButton); 
-    //
-    //     var proteinTwoButton = new RadioButton();
-    //     proteinTwoButton.Text = "GFP";
-    //     proteinTwoButton.Checked += (_, _) =>
-    //     {
-    //         Game1.CurrentProtein = 2;
-    //         foreach (var m in Game1.SharedModels) m.Shown = false;
-    //         Game1.SharedModels[2].Shown = true;
-    //         _onResetCamera?.Invoke(); 
-    //         PlayClickSound(); 
-    //     };    
-    //     stackPanel.AddChild(proteinTwoButton); 
-    //
-    //     var proteinThreeButton = new RadioButton();
-    //     proteinThreeButton.Text = "alpha1";
-    //     proteinThreeButton.Checked += (_, _) =>         
-    //     {
-    //         Game1.CurrentProtein = 1;
-    //         foreach (var m in Game1.SharedModels) m.Shown = false;
-    //         Game1.SharedModels[1].Shown = true;
-    //         _onResetCamera?.Invoke(); 
-    //         PlayClickSound(); 
-    //     }; 
-    //     stackPanel.AddChild(proteinThreeButton); 
-    //     
-    //     var proteinFourButton = new RadioButton();
-    //     proteinFourButton.Text = "9MAR";
-    //     proteinFourButton.Checked += (_, _) =>        
-    //     {
-    //         Game1.CurrentProtein = 3;
-    //         foreach (var m in Game1.SharedModels) m.Shown = false;
-    //         Game1.SharedModels[3].Shown = true;
-    //         _onResetCamera?.Invoke(); 
-    //         PlayClickSound(); 
-    //     }; 
-    //     stackPanel.AddChild(proteinFourButton);
-    //     
+        _controlPanel.AddChild(_resetButton);
     }
 
     public void OnWindowResize(float screenWidth, float screenHeight)
     {
-        _controlPanel.RemoveFromRoot();
-        Build(screenWidth, screenHeight);
+        if (_controlPanel == null) return;
+
+        _buttonPanel.Height = screenHeight;
+        _buttonPanel.X = screenWidth - _buttonPanel.Width;
+
+        float btnX = screenWidth - _buttonSize - _buttonPading;
+
+        _menuButton.X = btnX;
+        _ramaButton.X = btnX;
+        _backboneButton.X = btnX;
+        _infoButton.X = btnX;
+
+        _resetButton.X = btnX;
+        _resetButton.Y = screenHeight - _buttonSize - _buttonPading;
     }
     
     private void PlayClickSound()
